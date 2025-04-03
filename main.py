@@ -35,7 +35,7 @@ class VK:
         params = {'owner_id': user_id, 'count': count, 'album_id': 'profile', 'extended': 1}
         params.update(self.vk_params)
         response = requests.get(url, headers=headers, params=params)
-        for item in tqdm(response.json()['response']['items'], ncols=80, colour='BLUE', desc='Downloading photos'):
+        for item in tqdm(response.json()['response']['items'], ncols=100, colour='BLUE', desc='Downloading photos'):
             img_url = item['sizes'][-1]['url']
             img_name = item['likes']['count']
             if os.path.exists(f'{img_name}.jpg'):
@@ -54,7 +54,7 @@ class VK:
 
     def save_photo_to_yandex(self):
         requests.put(self.ya_base_url, headers=self.ya_headers, params=self.ya_params)
-        for file in tqdm(glob.glob(f'./*.jpg'), ncols=80, colour='GREEN', desc='Uploading photos'):
+        for file in tqdm(glob.glob(f'./*.jpg'), ncols=100, colour='GREEN', desc='Uploading photos'):
             with open(file, 'rb') as img:
                 params = {'path': f'{current_date}/{os.path.basename(file)}'}
                 response = requests.get(f'{self.ya_base_url}upload', params=params, headers=self.ya_headers)
