@@ -1,3 +1,5 @@
+import time
+
 import requests
 from tqdm import tqdm
 import os
@@ -42,7 +44,7 @@ class VK:
             pesp_img = requests.get(img_url)
             with open(f'{img_name}.jpg', 'wb') as f:
                 f.write(pesp_img.content)
-        # return response.json()
+        time.sleep(1)
 
     def get_status(self, user_id):
         url = f'{self.vk_base_url}status.get'
