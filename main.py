@@ -64,7 +64,7 @@ class VK:
 
 
 if __name__ == '__main__':
-    user_id = input('ID user: ')
+    user_id = str(input('ID user: ')).strip()
     vk = VK()
     vk.get_photos(user_id)
     vk.save_photo_to_yandex()
