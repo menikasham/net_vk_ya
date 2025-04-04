@@ -30,7 +30,7 @@ class VK:
         response = requests.get(url, headers=headers, params={**self.vk_params, **params})
         return response.json()
 
-    def get_photos(self, user_id, count=10):
+    def get_photos(self, user_id, count):
         url = f'{self.vk_base_url}photos.get'
         params = {'owner_id': user_id, 'count': count, 'album_id': 'wall', 'extended': 1}
         params.update(self.vk_params)
@@ -40,9 +40,9 @@ class VK:
             img_name = item['likes']['count']
             if os.path.exists(f'{img_name}.jpg'):
                 img_name = str(item['likes']['count']) + "_" + str(random.randint(1, 20))
-            pesp_img = requests.get(img_url, headers=headers)
+            resp_img = requests.get(img_url, headers=headers)
             with open(f'{img_name}.jpg', 'wb') as f:
-                f.write(pesp_img.content)
+                f.write(resp_img.content)
         time.sleep(1)
 
     def get_status(self, user_id):
@@ -65,6 +65,9 @@ class VK:
 
 if __name__ == '__main__':
     user_id = str(input('ID user: ')).strip()
+    count = input('Number of photos to download (default - 5): ')
+    if count == '':
+        count = 5
     vk = VK()
-    vk.get_photos(user_id)
+    vk.get_photos(user_id, count)
     vk.save_photo_to_yandex()
