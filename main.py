@@ -32,12 +32,13 @@ class VK:
 
     def get_photos(self, user_id, count):
         url = f'{self.vk_base_url}photos.get'
-        params = {'owner_id': user_id, 'count': count, 'album_id': 'wall', 'extended': 1}
+        params = {'owner_id': user_id, 'count': count, 'album_id': 'profile', 'extended': 1}
         params.update(self.vk_params)
         response = requests.get(url, headers=headers, params=params)
         for item in tqdm(response.json()['response']['items'], ncols=100, colour='BLUE', desc='Downloading photos'):
             img_url = item['sizes'][-1]['url']
             img_name = item['likes']['count']
+            # обходим возможные одинаковые имена файлов
             if os.path.exists(f'{img_name}.jpg'):
                 img_name = str(item['likes']['count']) + "_" + str(random.randint(1, 20))
             resp_img = requests.get(img_url, headers=headers)
