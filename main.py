@@ -30,9 +30,9 @@ class VK:
         response = requests.get(url, headers=headers, params={**self.vk_params, **params})
         return response.json()
 
-    def get_photos(self, user_id, count=5):
+    def get_photos(self, user_id, count=10):
         url = f'{self.vk_base_url}photos.get'
-        params = {'owner_id': user_id, 'count': count, 'album_id': 'profile', 'extended': 1}
+        params = {'owner_id': user_id, 'count': count, 'album_id': 'wall', 'extended': 1}
         params.update(self.vk_params)
         response = requests.get(url, headers=headers, params=params)
         for item in tqdm(response.json()['response']['items'], ncols=100, colour='BLUE', desc='Downloading photos'):
@@ -40,7 +40,7 @@ class VK:
             img_name = item['likes']['count']
             if os.path.exists(f'{img_name}.jpg'):
                 img_name = str(item['likes']['count']) + "_" + str(random.randint(1, 20))
-            pesp_img = requests.get(img_url)
+            pesp_img = requests.get(img_url, headers=headers)
             with open(f'{img_name}.jpg', 'wb') as f:
                 f.write(pesp_img.content)
         time.sleep(1)
