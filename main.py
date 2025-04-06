@@ -1,12 +1,12 @@
-import time
+'''
+скорректированная версия с прямой загрузкой по линку
+'''
 import requests
 from tqdm import tqdm
 import os
-import random
 from dotenv import load_dotenv
 from fake_useragent import UserAgent
 from datetime import date
-import glob
 
 current_date = date.today()
 
@@ -21,7 +21,10 @@ class VK:
         self.vk_params = {'access_token': access_token, 'v': version}
         self.vk_base_url = 'https://api.vk.com/method/'
         self.ya_base_url = 'https://cloud-api.yandex.net/v1/disk/resources/'
-        self.ya_headers = {'Authorization': os.getenv('YA_TOKEN')}
+        self.ya_headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': os.getenv('YA_TOKEN')}
         self.ya_params = {'path': f'{current_date}'}
 
     def users_info(self, user_id):
@@ -35,16 +38,15 @@ class VK:
         params = {'owner_id': user_id, 'count': count, 'album_id': 'profile', 'extended': 1}
         params.update(self.vk_params)
         response = requests.get(url, headers=headers, params=params)
+        requests.put(self.ya_base_url, headers=self.ya_headers, params=self.ya_params)
         for item in tqdm(response.json()['response']['items'], ncols=100, colour='BLUE', desc='Downloading photos'):
             img_url = item['sizes'][-1]['url']
             img_name = item['likes']['count']
-            # обходим возможные одинаковые имена файлов
-            if os.path.exists(f'{img_name}.jpg'):
-                img_name = str(item['likes']['count']) + "_" + str(random.randint(1, 20))
-            resp_img = requests.get(img_url, headers=headers)
-            with open(f'{img_name}.jpg', 'wb') as f:
-                f.write(resp_img.content)
-        time.sleep(1)
+            params = {'path': f'{current_date}/{img_name}.jpg',
+                       'url': img_url}
+            response = requests.post(f'{self.ya_base_url}upload', params=params, headers=self.ya_headers)
+            upload_link = response.json()['href']
+            requests.put(upload_link, headers=self.ya_headers)
 
     def get_status(self, user_id):
         url = f'{self.vk_base_url}status.get'
@@ -52,16 +54,6 @@ class VK:
         params.update(self.vk_params)
         response = requests.get(url, headers=headers, params=params)
         return response.json()
-
-    def save_photo_to_yandex(self):
-        requests.put(self.ya_base_url, headers=self.ya_headers, params=self.ya_params)
-        for file in tqdm(glob.glob(f'./*.jpg'), ncols=100, colour='GREEN', desc='Uploading photos'):
-            with open(file, 'rb') as img:
-                params = {'path': f'{current_date}/{os.path.basename(file)}'}
-                response = requests.get(f'{self.ya_base_url}upload', params=params, headers=self.ya_headers)
-                upload_link = response.json()['href']
-                requests.put(upload_link, files={'file': img})
-            os.remove(file)
 
 
 if __name__ == '__main__':
@@ -71,4 +63,3 @@ if __name__ == '__main__':
         count = 5
     vk = VK()
     vk.get_photos(user_id, count)
-    vk.save_photo_to_yandex()
